@@ -19,6 +19,7 @@ class CreateResetPhonesTable extends Migration
             $table->string('phone');
             $table->string('activation_code');
             $table->timestamp('expires_at')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
