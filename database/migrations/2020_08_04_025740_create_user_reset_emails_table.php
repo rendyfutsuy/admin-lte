@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateResetEmailsTable extends Migration
+class CreateUserResetEmailsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateResetEmailsTable extends Migration
      */
     public function up()
     {
-        Schema::create('reset_emails', function (Blueprint $table) {
+        Schema::create('user_reset_emails', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('user_id');
             $table->string('email');
@@ -31,6 +31,6 @@ class CreateResetEmailsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('reset_emails');
+        Schema::dropIfExists('user_reset_emails');
     }
 }
