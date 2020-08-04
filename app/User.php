@@ -30,6 +30,7 @@ class User extends Authenticatable
         'email_verified_at',
         'banned_at',
         'level',
+        'avatar',
         'is_banned',
         'meta',
     ];
