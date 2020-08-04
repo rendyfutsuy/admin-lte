@@ -31,7 +31,6 @@ class User extends Authenticatable
         'banned_at',
         'level',
         'avatar',
-        'is_banned',
         'meta',
     ];
 
@@ -53,13 +52,12 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'meta' => 'array',
-        'is_banned' => 'boolean'
     ];
 
     /** show user banned status */
     public function isBanned(): boolean
     {
-        return $this->is_banned;
+        return $this->banned_at;
     }
 
     /**  show user activation status */
