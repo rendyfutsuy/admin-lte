@@ -15,7 +15,7 @@ class User extends Authenticatable
     /** Level */
 
     Const GUEST = 0;
-    Const NORMAL = 1;
+    Const REGISTERED = 1;
     Const ADMIN = 2;
 
     /**
@@ -27,11 +27,11 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
-        'meta',
         'email_verified_at',
         'banned_at',
         'level',
         'is_banned',
+        'meta',
     ];
 
     /**
@@ -66,6 +66,18 @@ class User extends Authenticatable
     {
         return ! $this->activation_code &&
             $this->email_verified_at;
+    }
+
+    /**  confirm user level as admin */
+    public function isAdmin(): boolean
+    {
+        return $this->level == self::ADMIN;
+    }
+
+    /**  confirm user level as anot guest */
+    public function notGuest(): boolean
+    {
+        return $this->level == self::GUEST;
     }
 
     public function resetPhones(): HasMany
