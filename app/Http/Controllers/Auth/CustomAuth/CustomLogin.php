@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 
-class CustomLoginController extends Controller
+abstract class CustomLogin extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | CustomLoginController
+    | CustomLogin
     |--------------------------------------------------------------------------
     |
     | require to use `Illuminate\Foundation\Auth\AuthenticatesUsers` to work properly
@@ -23,6 +23,8 @@ class CustomLoginController extends Controller
 
     use AuthenticatesUsers;
 
+    /** @var User */
+    protected $user = null;
 
     /**
      * Handle a login request to the application.
@@ -48,10 +50,7 @@ class CustomLoginController extends Controller
         }
 
         if ($this->userNotVerified($request->login, $request->password)) {
-            $user = User::where(function($user) use ($request) {
-                $user->where('email', $request->login)
-                    ->orWhere('username', $request->login);
-            })->firstOrFail();
+            $user = $this->user;
 
             $e = base64url_encode($user->email);
 
@@ -60,6 +59,10 @@ class CustomLoginController extends Controller
             return redirect(route('account.activation', [
                 'e' => $e,
             ]));
+        }
+
+        if ($this->userBanned($request->login)) {
+            return redirect(route('login'));
         }
 
         if ($this->attemptLogin($request)) {
@@ -95,12 +98,9 @@ class CustomLoginController extends Controller
      * @param  string  $password
      * @return bool
      */
-    public function userNotVerified($login, $password)
+    protected function userNotVerified($login, $password)
     {
-        $user = User::where(function($user) use ($login) {
-            $user->where('email', $login)
-                ->orWhere('username', $login);
-        })->first();
+        $user = $this->user;
 
         if (! $user) {
             return false; // user not found leave the response to sendFailedLoginResponse
@@ -114,7 +114,33 @@ class CustomLoginController extends Controller
             );
         }
 
-        return $user->email_verified_at == null;
+        return $user->email_verified_at == null ||
+            $user->banned_at != null;
+    }
+
+    /**
+     * Check user ban status.
+     *
+     * @param  string  $login
+     * @return bool
+     */
+    protected function userBanned($login)
+    {
+        $user = $this->user;
+
+        if (! $user) {
+            return false; // user not found leave the response to sendFailedLoginResponse
+        }
+
+        return $user->banned_at != null;
+    }
+    
+    protected function setUser(Request $request)
+    {
+        $this->user = User::where(function($user) use ($request) {
+            $user->where('email', $request->login)
+                ->orWhere('username', $request->login);
+        })->first();
     }
 
     /**

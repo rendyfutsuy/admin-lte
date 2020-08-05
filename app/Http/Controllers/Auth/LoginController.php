@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Auth\CustomAuth\CustomLoginController;
+use App\Http\Controllers\Auth\CustomAuth\CustomLogin;
 
-class LoginController extends CustomLoginController
+class LoginController extends CustomLogin
 {
     /*
     |--------------------------------------------------------------------------
@@ -31,7 +31,18 @@ class LoginController extends CustomLoginController
      */
     public function __construct()
     {
+        $this->setUser(request());
         $this->middleware('guest')->except('logout');
+    }
+
+    /**
+     * Show the application's login form.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function showLoginForm()
+    {
+        return view('auth.login');
     }
 
     /**

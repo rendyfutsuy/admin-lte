@@ -57,4 +57,43 @@ class LoginTest extends TestCase
 
         $this->assertGuest();
     }
+
+    /** @test */
+    public function un_verified_user_can_not_log_in()
+    {
+        $this->withExceptionHandling();
+
+        $user = factory(User::class)->create([
+            'email' => 'aditia@holahalo.com',
+            'password' => bcrypt('secret'),
+            'email_verified_at' => null,
+        ]);
+
+        $this->postJson(route('login'), [
+            'login' => 'aditia@holahalo.com',
+            'password' => 'secret',
+        ]);
+
+        $this->assertGuest();
+    }
+
+    /** @test */
+    public function banned_user_can_not_log_in()
+    {
+        $this->withExceptionHandling();
+
+        $user = factory(User::class)->create([
+            'email' => 'aditia@holahalo.com',
+            'password' => bcrypt('secret'),
+            'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
+            'banned_at' => Carbon::now()->format('Y-m-d H:i:s'),
+        ]);
+
+        $this->postJson(route('login'), [
+            'login' => 'aditia@holahalo.com',
+            'password' => 'secret',
+        ]);
+
+        $this->assertGuest();
+    }
 }
