@@ -5,6 +5,7 @@
 use App\User;
 use Faker\Generator as Faker;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,8 +22,33 @@ $factory->define(User::class, function (Faker $faker) {
     return [
         'username' => $faker->name,
         'email' => $faker->unique()->safeEmail,
-        'email_verified_at' => now(),
-        'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-        'remember_token' => Str::random(10),
+        'password' => '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm', // secret
+        'last_online' => Carbon::now(),
+        'remember_token' => random_str(10),
+        'banned_at' => null,
     ];
 });
+
+$factory->state(User::class, 'needs_activation', function (Faker $faker) {
+    return [
+        'activation_code' => $faker->randomNumber(5),
+        'email_verified_at' => null,
+        'last_online' => null,
+        'remember_token' => null,
+    ];
+});
+
+$factory->state(User::class, 'activated', function (Faker $faker) {
+    return [
+        'activation_code' => null,
+        'email_verified_at' => $faker->dateTime(),
+        'last_online' => null,
+    ];
+});
+
+$factory->state(User::class, 'banned', function (Faker $faker) {
+    return [
+        'banned_at' => $faker->dateTime(),
+    ];
+});
+

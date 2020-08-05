@@ -2,11 +2,12 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -32,6 +33,7 @@ class User extends Authenticatable
         'level',
         'avatar',
         'meta',
+        'activation_code',
     ];
 
     /**
@@ -52,30 +54,31 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'banned_at' => 'datetime',
+        'last_login' => 'datetime',
         'meta' => 'array',
     ];
 
     /** show user banned status */
-    public function isBanned(): boolean
+    public function isBanned(): bool
     {
         return $this->banned_at;
     }
 
     /**  show user activation status */
-    public function isActivated(): boolean
+    public function isActivated(): bool
     {
         return ! $this->activation_code &&
             $this->email_verified_at;
     }
 
     /**  confirm user level as admin */
-    public function isAdmin(): boolean
+    public function isAdmin(): bool
     {
         return $this->level == self::ADMIN;
     }
 
     /**  confirm user level as anot guest */
-    public function notGuest(): boolean
+    public function notGuest(): bool
     {
         return $this->level == self::GUEST;
     }
@@ -109,5 +112,18 @@ class User extends Authenticatable
         }
 
         return $this->meta[$label];
+    }
+
+    public function getActivationCode(): ?string
+    {
+        return $this->activation_code;
+    }
+
+    public function markEmailAsVerified(): void
+    {
+        $this->activation_code = null;
+        $this->email_verified_at = Carbon::now();
+        $this->last_online = Carbon::now();
+        $this->save();  
     }
 }

@@ -20,8 +20,10 @@ class CreateUsersTable extends Migration
             $table->string('avatar')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamp('banned_at')->nullable();
+            $table->string('activation_code')->nullable();
             $table->integer('level')->default(1);
             $table->string('password');
+            $table->timestamp('last_online')->nullable();
             $table->json('meta')->nullable();
             $table->rememberToken();
             $table->softDeletes();
