@@ -21,7 +21,7 @@ abstract class CustomLogin extends Controller
     |
     */
 
-    use AuthenticatesUsers;
+    use AuthenticatesUsers, AuthResponses;
 
     /** @var User */
     protected $user = null;
@@ -49,19 +49,35 @@ abstract class CustomLogin extends Controller
             return;
         }
 
-        if ($this->userNotVerified($request->login, $request->password)) {
+        if ($this->userNotVerified($request->password)) {
             $user = $this->user;
 
             $e = base64url_encode($user->email);
 
             // Mail::to($user)->send(new UserActivationEmail($user));
 
+            if ($this->isAjax()) {
+                return $this->getResponses([
+                    'redirect_to' => route('account.activation', [
+                            'e' => $e,
+                        ]),
+                    'messages' => __('akun harus di aktivasi terlebih dahulu'),
+                ], 401);
+            }
+
             return redirect(route('account.activation', [
                 'e' => $e,
             ]));
         }
 
-        if ($this->userBanned($request->login)) {
+        if ($this->userBanned()) {
+            if ($this->isAjax()) {
+                return $this->getResponses([
+                    'redirect_to' => route('login'),
+                    'messages' => __('User anda kami blokir'),
+                ], 401);
+            }
+
             return redirect(route('login'));
         }
 
@@ -94,11 +110,10 @@ abstract class CustomLogin extends Controller
     /**
      * Check user verified status.
      *
-     * @param  string  $login
      * @param  string  $password
      * @return bool
      */
-    protected function userNotVerified($login, $password)
+    protected function userNotVerified($password)
     {
         $user = $this->user;
 
@@ -107,6 +122,13 @@ abstract class CustomLogin extends Controller
         }
 
         if (! Hash::check($password, $user->password)) {
+            if ($this->isAjax()) {
+                return $this->getResponses([
+                    'redirect_to' => route('login'),
+                    'messages' => __('Email atau kata sandi yang Anda masukkan salah.'),
+                ], 401);
+            }
+
             abort(
                 redirect(route('login'))->withErrors([
                     'failed' => __('Email atau kata sandi yang Anda masukkan salah.'),
@@ -114,17 +136,20 @@ abstract class CustomLogin extends Controller
             );
         }
 
-        return $user->email_verified_at == null ||
-            $user->banned_at != null;
+        return $user->email_verified_at == null;
+    }
+
+    protected function isAjax(): bool
+    {
+        return request()->ajax() || request()->wantsJson() || request()->expectsJson();
     }
 
     /**
      * Check user ban status.
      *
-     * @param  string  $login
      * @return bool
      */
-    protected function userBanned($login)
+    protected function userBanned()
     {
         $user = $this->user;
 
